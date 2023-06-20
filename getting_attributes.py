@@ -5,7 +5,7 @@ import json
 
 
 @dataclass
-class Data:
+class SymbolData:
     tick_size_steps: list
     tick_size: float
     taker_commission: float
@@ -52,9 +52,9 @@ def get_all_request_attributes(dictionary: list[Dict]):
         for key in Dictionary.keys():
             key_type = get_type(type(Dictionary[key]))
             with open('request_attributes.txt', 'r+') as f:
-                data = ' '.join(f.readlines())
+                SymbolData = ' '.join(f.readlines())
 
-            if f'{key}: {key_type}' not in data:
+            if f'{key}: {key_type}' not in SymbolData:
                 with open('request_attributes.txt', 'a') as f:
                     f.writelines(f'{key}: {key_type}\n')
 
