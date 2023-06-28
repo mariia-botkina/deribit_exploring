@@ -29,4 +29,11 @@ if __name__ == '__main__':
     opt_cost_request: Response = requests.get(url=url_option, params=params_option)
     option_cost: List[Dict[str, Union[int, float, bool, str]]] = json.loads(opt_cost_request.text)['result']
 
+    value_creation_timestamp = option_cost[0]['creation_timestamp']
+    for dictionary in option_cost:
+        if dictionary['creation_timestamp'] != value_creation_timestamp:
+            print('Different values of creation timestamp in the request')
+            break
+    else:
+        print('The same values of creation timestamp in the request')
     a = 1
