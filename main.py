@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     symbols_info: List[SymbolData] = get_list_of_symbols_data(result)
 
-    url_option = 'https://test.deribit.com/api/v2/public/get_book_summary_by_currency'
+    url_option = 'https://deribit.com/api/v2/public/get_book_summary_by_currency'
     params_option: Dict[str, str] = {
         'currency': 'BTC',
         'kind': 'option',
