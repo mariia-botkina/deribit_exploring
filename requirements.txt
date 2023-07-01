@@ -1,2 +1,5 @@
 dataclasses-json==0.5.7
 requests==2.31.0
+sympy==1.12
+numpy==1.25.0
+matplotlib==3.7.1
