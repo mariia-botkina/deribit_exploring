@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List, Dict, Union
 import requests
 import json
@@ -26,14 +27,22 @@ if __name__ == '__main__':
 
     }
 
-    opt_cost_request: Response = requests.get(url=url_option, params=params_option)
-    option_cost: List[Dict[str, Union[int, float, bool, str]]] = json.loads(opt_cost_request.text)['result']
+    opt_prices_request: Response = requests.get(url=url_option, params=params_option)
+    options_prices: List[Dict[str, Union[int, float, bool, str]]] = json.loads(opt_prices_request.text)['result']
 
-    value_creation_timestamp = option_cost[0]['creation_timestamp']
-    for dictionary in option_cost:
-        if dictionary['creation_timestamp'] != value_creation_timestamp:
-            print('Different values of creation timestamp in the request')
-            break
-    else:
-        print('The same values of creation timestamp in the request')
+    ts_data: Dict[str, List[int]] = defaultdict(list)
+
+    for data in options_prices:
+        series = data['instrument_name'].split('-')[0] + data['instrument_name'].split('-')[1]
+        ts_data[series].append(data['creation_timestamp'])
+
+    ot_data: Dict[str, List[int]] = defaultdict(list)
+
+    for data in result:
+        series = data['instrument_name'].split('-')[0] + data['instrument_name'].split('-')[1]
+        ot_data[series].append(data['option_type'])
+
+    for series, ts_list in ts_data.items():
+        print(series, max(ts_list) - min(ts_list), ot_data[series])
+
     a = 1
