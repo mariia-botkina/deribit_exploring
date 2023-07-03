@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import List, Dict, Union
+from dataclasses import dataclass
+from typing import List, Dict, Union, Optional
 import requests
 import json
 
@@ -35,6 +36,25 @@ if __name__ == '__main__':
     for data in options_prices:
         series = data['instrument_name'].split('-')[0] + data['instrument_name'].split('-')[1]
         ts_data[series].append(data['creation_timestamp'])
+
+    """
+        BTC-29JUN23-30000-P
+        30000 - strike
+        P - put
+    """
+
+
+    @dataclass
+    class OptionData:
+        maturity: float  # expiry - creation_timestamp -> years
+        underlying_price: float  # from prices
+        ask_price: Optional[float]  # min from put, call
+        ask_type: str  # put or call
+        bid_price: Optional[float]  # max from put, call
+        bid_tyoe: str  # put or call
+        strike: int  # from symbols info
+        name: str  # BTC-29JUN23-30000
+
 
     ot_data: Dict[str, List[int]] = defaultdict(list)
 
