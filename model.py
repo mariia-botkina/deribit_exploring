@@ -32,3 +32,15 @@ class SymbolData:
     max_liquidation_commission: Optional[float]
     max_leverage: Optional[int]
     future_type: Optional[str]
+
+
+@dataclass
+class OptionData:
+    maturity: float  # expiry - creation_timestamp -> years
+    underlying_price: float  # from prices
+    ask_price: Optional[float]  # min from put, call
+    ask_type: str  # put or call
+    bid_price: Optional[float]  # max from put, call
+    bid_type: str  # put or call
+    strike: int  # from symbols info
+    name: str  # BTC-29JUN23-30000
