@@ -51,7 +51,7 @@ if __name__ == '__main__':
         ask_price: Optional[float]  # min from put, call
         ask_type: str  # put or call
         bid_price: Optional[float]  # max from put, call
-        bid_tyoe: str  # put or call
+        bid_type: str  # put or call
         strike: int  # from symbols info
         name: str  # BTC-29JUN23-30000
 
