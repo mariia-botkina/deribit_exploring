@@ -1,11 +1,11 @@
-from typing import List, Callable
+from typing import List, Callable, Tuple
 
 import numpy as np
 import matplotlib.pyplot as plt
 from sympy import Pow
 
 
-def find_points(start_point: float, contraction_mapping: Callable, f: Callable) -> (List[float], List[float]):
+def find_points(start_point: float, contraction_mapping: Callable, f: Callable) -> Tuple[List[float], List[float]]: # добавить разницу между иксами
     x_points: List[float] = [start_point]
     y_points: List[float] = [f(x_points[-1])]
 
@@ -24,7 +24,7 @@ def create_pointed_graph(x_points: List[float], y_points: List[float]):
 
 
 def create_continuous_graph(f: Callable):
-    x = np.linspace(start=-8, stop=8, num=40)
+    x = np.linspace(start=-40, stop=40, num=1000)
     y = [f(val) for val in x]
 
     plt.plot(x, y)
