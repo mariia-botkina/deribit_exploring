@@ -67,7 +67,7 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
     option_data_dict['name'] = call['instrument_name'][:-2]
     option_data_dict['strike'] = symbols_data[option_data_dict['name']]['strike']
     option_data_dict['maturity'] = (symbols_data[option_data_dict['name']]['expiration_timestamp'] -
-                                    symbols_data[option_data_dict['name']]['creation_timestamp']) / int(timedelta(days=365) / timedelta(milliseconds=1))
+                                    call['creation_timestamp']) / int(timedelta(days=365) / timedelta(milliseconds=1))
     option_data_dict['underlying_price'] = call['underlying_price']
 
     return OptionData(*option_data_dict.values())
