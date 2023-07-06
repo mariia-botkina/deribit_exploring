@@ -54,7 +54,7 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
         return None
 
     if call['bid_price'] is not None and put['bid_price'] is not None:
-        if call['bid_price'] <= put['bid_price']:
+        if call['bid_price'] >= put['bid_price']:
             option_data_dict['bid_price'] = call['bid_price'] * call['underlying_price']
             option_data_dict['bid_type'] = 'call'
         else:
