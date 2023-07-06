@@ -46,5 +46,4 @@ if __name__ == '__main__':
         if option is not None:
             options_info[series].append(option)
 
-    calculate_ask_bid_volatility(options_info['BTC14JUL23'][14])
-    a = 1
+    calculate_ask_bid_volatility(options_info['BTC14JUL23'][3])

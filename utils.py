@@ -44,36 +44,24 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
     option_data_dict: Dict[str, Any] = dict.fromkeys(get_names_of_attributes(fields(OptionData)))
 
     if call['ask_price'] is not None and put['ask_price'] is not None:
-        option_data_dict['ask_price'] = min(call['ask_price'], put['ask_price']) * call['underlying_price']
-        if option_data_dict['ask_price'] == call['ask_price']:
-            option_data_dict['ask_type'] = 'call'
-        else:
-            option_data_dict['ask_type'] = 'put'
-    elif call['ask_price'] is None and put['ask_price'] is None:
-        return None
-    else:
-        if call['ask_price'] is None:
-            option_data_dict['ask_price'] = put['ask_price'] * call['underlying_price']
-            option_data_dict['ask_type'] = 'put'
-        else:
+        if call['ask_price'] <= put['ask_price']:
             option_data_dict['ask_price'] = call['ask_price'] * call['underlying_price']
             option_data_dict['ask_type'] = 'call'
+        else:
+            option_data_dict['ask_price'] = put['ask_price'] * call['underlying_price']
+            option_data_dict['ask_type'] = 'put'
+    else:
+        return None
 
     if call['bid_price'] is not None and put['bid_price'] is not None:
-        option_data_dict['bid_price'] = min(call['bid_price'], put['bid_price']) * call['underlying_price']
-        if option_data_dict['bid_price'] == call['bid_price']:
-            option_data_dict['bid_type'] = 'call'
-        else:
-            option_data_dict['bid_type'] = 'put'
-    elif call['bid_price'] is None and put['bid_price'] is None:
-        return None
-    else:
-        if call['bid_price'] is None:
-            option_data_dict['bid_price'] = put['bid_price'] * call['underlying_price']
-            option_data_dict['bid_type'] = 'put'
-        else:
+        if call['bid_price'] <= put['bid_price']:
             option_data_dict['bid_price'] = call['bid_price'] * call['underlying_price']
             option_data_dict['bid_type'] = 'call'
+        else:
+            option_data_dict['bid_price'] = put['bid_price'] * call['underlying_price']
+            option_data_dict['bid_type'] = 'put'
+    else:
+        return None
 
     option_data_dict['name'] = call['instrument_name'][:-2]
     option_data_dict['strike'] = symbols_data[option_data_dict['name']]['strike']
@@ -89,7 +77,6 @@ def calculate_ask_bid_volatility(option: OptionData):
     option.bid_volatility = calculate_volatility(option=option, price_type=option.bid_type, ask_price=option.bid_price)
 
     print(option.ask_volatility, option.bid_volatility)
-    b = 2
 
 
 def calculate_next_volatility(price_type: str, ask_price: float, T: float, X: float, S: float, sigma: float):
