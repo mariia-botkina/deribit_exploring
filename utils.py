@@ -85,21 +85,6 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
     return OptionData(*option_data_dict.values())
 
 
-def decomposition_distribution_func_into_row(n: int, symbol: Mul):
-    row: Mul = symbol
-    for i in range(1, n):
-        row_summand = symbol ** (2 * i) + 1 / double_factorial(i)
-        row += row_summand
-    return row
-
-
-def double_factorial(n):
-    if n <= 0:
-        return 1
-    else:
-        return n * double_factorial(n - 2)
-
-
 def calculate_volatility(option: OptionData):
     r = 0
     number_of_iterations = 100
