@@ -79,18 +79,18 @@ def calculate_ask_bid_volatility(option: OptionData):
     print(option.ask_volatility, option.bid_volatility)
 
 
-def calculate_next_volatility(price_type: str, ask_price: float, T: float, X: float, S: float, sigma: float):
+def calculate_next_volatility(price_type: str, price: float, T: float, X: float, S: float, sigma: float):
     d1 = (log(S / X) + sigma ** 2 / 2 * T) / (sigma * sqrt(T))
     d2 = d1 - sigma * sqrt(T)
 
     if price_type == 'call':
         N1 = norm.cdf(d1)
         N2 = norm.cdf(d2)
-        f = ask_price - S * N1 + X * N2
+        f = price - S * N1 + X * N2
     else:
         N1 = norm.cdf(-d1)
         N2 = norm.cdf(-d2)
-        f = ask_price - X * N2 + S * N1
+        f = price - X * N2 + S * N1
     f_derivative = S * norm.pdf(d1) * sqrt(T)
 
     new_sigma = sigma - f / f_derivative
@@ -103,7 +103,7 @@ def calculate_volatility(option: OptionData, price_type: str, ask_price: float):
 
     sigma1: float = 0.5
     for _ in range(number_of_iterations):
-        sigma2 = calculate_next_volatility(price_type=price_type, ask_price=ask_price, T=option.maturity,
+        sigma2 = calculate_next_volatility(price_type=price_type, price=ask_price, T=option.maturity,
                                            X=option.strike, S=option.underlying_price, sigma=sigma1)
         if abs(sigma1 - sigma2) < difference:
             break
