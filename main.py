@@ -6,7 +6,8 @@ import requests
 from requests import Response
 
 from model import SymbolData, OptionData
-from utils import get_list_of_symbols_data, get_list_of_call_and_put_data, create_option_data, calculate_volatility
+from utils import get_list_of_symbols_data, get_list_of_call_and_put_data, create_option_data, calculate_volatility, \
+    calculate_ask_bid_volatility
 
 if __name__ == '__main__':
     url = "https://deribit.com/api/v2/public/get_instruments"
@@ -45,5 +46,5 @@ if __name__ == '__main__':
         if option is not None:
             options_info[series].append(option)
 
-    calculate_volatility(options_info['BTC14JUL23'][14])
+    calculate_ask_bid_volatility(options_info['BTC14JUL23'][14])
     a = 1

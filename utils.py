@@ -2,9 +2,8 @@ from dataclasses import fields
 from typing import Tuple, List, Dict, Any, Union
 
 from scipy.stats import norm
-from sympy import Mul
 
-from math import sqrt, log, exp, pi
+from math import sqrt, log
 from model import SymbolData, OptionData
 
 
@@ -45,7 +44,7 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
     option_data_dict: Dict[str, Any] = dict.fromkeys(get_names_of_attributes(fields(OptionData)))
 
     if call['ask_price'] is not None and put['ask_price'] is not None:
-        option_data_dict['ask_price'] = min(call['ask_price'], put['ask_price'])
+        option_data_dict['ask_price'] = min(call['ask_price'], put['ask_price']) * call['underlying_price']
         if option_data_dict['ask_price'] is call['ask_price']:
             option_data_dict['ask_type'] = 'call'
         else:
@@ -54,14 +53,14 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
         return None
     else:
         if call['ask_price'] is None:
-            option_data_dict['ask_price'] = put['ask_price']
+            option_data_dict['ask_price'] = put['ask_price'] * call['underlying_price']
             option_data_dict['ask_type'] = 'put'
         else:
-            option_data_dict['ask_price'] = call['ask_price']
+            option_data_dict['ask_price'] = call['ask_price'] * call['underlying_price']
             option_data_dict['ask_type'] = 'call'
 
     if call['bid_price'] is not None and put['bid_price'] is not None:
-        option_data_dict['bid_price'] = min(call['bid_price'], put['bid_price'])
+        option_data_dict['bid_price'] = min(call['bid_price'], put['bid_price']) * call['underlying_price']
         if option_data_dict['bid_price'] is call['bid_price']:
             option_data_dict['bid_type'] = 'call'
         else:
@@ -70,10 +69,10 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
         return None
     else:
         if call['bid_price'] is None:
-            option_data_dict['bid_price'] = put['bid_price']
+            option_data_dict['bid_price'] = put['bid_price'] * call['underlying_price']
             option_data_dict['bid_type'] = 'put'
         else:
-            option_data_dict['bid_price'] = call['bid_price']
+            option_data_dict['bid_price'] = call['bid_price'] * call['underlying_price']
             option_data_dict['bid_type'] = 'call'
 
     option_data_dict['name'] = call['instrument_name'][:-2]
@@ -85,72 +84,43 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
     return OptionData(*option_data_dict.values())
 
 
-def calculate_volatility(option: OptionData):
-    r = 0
-    number_of_iterations = 100
-    difference = 0.000001
+def calculate_ask_bid_volatility(option: OptionData):
+    option.ask_volatility = calculate_volatility(option=option, price_type=option.ask_type, ask_price=option.ask_price)
+    option.bid_volatility = calculate_volatility(option=option, price_type=option.bid_type, ask_price=option.bid_price)
 
-    start_point: float = 0.5
-    sigma_values = [start_point]
-    if option.ask_type == 'call':
-        for _ in range(number_of_iterations):
-            sigma_values.append(calculate_call_price_option_volatility(r=r, option=option, sigma=sigma_values[-1]))
-            if abs(sigma_values[-1] - sigma_values[-2]) < difference:
-                break
-    else:
-        for _ in range(number_of_iterations):
-            sigma_values.append(calculate_put_price_option_volatility(r=r, option=option, sigma=sigma_values[-1]))
-            if abs(sigma_values[-1] - sigma_values[-2]) < difference:
-                break
-    option.ask_volatility = sigma_values[-1]
-
-    sigma_values = [start_point]
-    if option.bid_type == 'call':
-        for _ in range(number_of_iterations):
-            sigma_values.append(calculate_call_price_option_volatility(r=r, option=option, sigma=sigma_values[-1]))
-            if abs(sigma_values[-1] - sigma_values[-2]) < difference:
-                break
-    else:
-        for _ in range(number_of_iterations):
-            sigma_values.append(calculate_put_price_option_volatility(r=r, option=option, sigma=sigma_values[-1]))
-            if abs(sigma_values[-1] - sigma_values[-2]) < difference:
-                break
-    option.bid_volatility = sigma_values[-1]
     print(option.ask_volatility, option.bid_volatility)
     b = 2
 
 
-def calculate_call_price_option_volatility(r: int, option: OptionData, sigma: float):
-    C = option.ask_price
-    T = option.maturity
-    X = option.strike
-    S = option.underlying_price
-
-    d1 = (log(S / X) + (r + sigma ** 2 / 2) * T) / (sigma * sqrt(T))
+def calculate_next_volatility(price_type: str, ask_price: float, T: float, X: float, S: float, sigma: float):
+    d1 = (log(S / X) + sigma ** 2 / 2 * T) / (sigma * sqrt(T))
     d2 = d1 - sigma * sqrt(T)
 
-    N1 = norm.cdf(d1)
-    N2 = norm.cdf(d2)
-    f = C - S * N1 + X * exp(-r * T) * N2
-    f_derivative = S * 1 / (2 * pi) * exp(-d1 ** 2 / 2) * sqrt(T)
+    if price_type == 'call':
+        N1 = norm.cdf(d1)
+        N2 = norm.cdf(d2)
+        f = ask_price - S * N1 + X * N2
+    else:
+        N1 = norm.cdf(-d1)
+        N2 = norm.cdf(-d2)
+        f = ask_price - X * N2 + S * N1
+    f_derivative = S * norm.pdf(d1) * sqrt(T)
 
     new_sigma = sigma - f / f_derivative
     return new_sigma
 
 
-def calculate_put_price_option_volatility(r: int, option: OptionData, sigma: float):
-    P = option.ask_price
-    T = option.maturity
-    X = option.strike
-    S = option.underlying_price
+def calculate_volatility(option: OptionData, price_type: str, ask_price: float):
+    number_of_iterations = 100
+    difference = 0.0001
 
-    d1 = (log(S / X) + (r + sigma ** 2 / 2) * T) / (sigma * sqrt(T))
-    d2 = d1 - sigma * sqrt(T)
+    sigma1: float = 0.5
+    for _ in range(number_of_iterations):
+        sigma2 = calculate_next_volatility(price_type=price_type, ask_price=ask_price, T=option.maturity,
+                                           X=option.strike, S=option.underlying_price, sigma=sigma1)
+        if abs(sigma1 - sigma2) < difference:
+            break
+        else:
+            sigma1 = sigma2
 
-    N1 = norm.cdf(-d1)
-    N2 = norm.cdf(-d2)
-    f = P - X * exp(-r * T) * N2 + S * N1
-    f_derivative = S * 1 / (2 * pi) * exp(-d1 ** 2 / 2) * sqrt(T)
-
-    new_sigma = sigma - f / f_derivative
-    return new_sigma
+    return sigma2
