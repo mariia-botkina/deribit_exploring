@@ -45,7 +45,7 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
 
     if call['ask_price'] is not None and put['ask_price'] is not None:
         option_data_dict['ask_price'] = min(call['ask_price'], put['ask_price']) * call['underlying_price']
-        if option_data_dict['ask_price'] is call['ask_price']:
+        if option_data_dict['ask_price'] == call['ask_price']:
             option_data_dict['ask_type'] = 'call'
         else:
             option_data_dict['ask_type'] = 'put'
@@ -61,7 +61,7 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
 
     if call['bid_price'] is not None and put['bid_price'] is not None:
         option_data_dict['bid_price'] = min(call['bid_price'], put['bid_price']) * call['underlying_price']
-        if option_data_dict['bid_price'] is call['bid_price']:
+        if option_data_dict['bid_price'] == call['bid_price']:
             option_data_dict['bid_type'] = 'call'
         else:
             option_data_dict['bid_type'] = 'put'
