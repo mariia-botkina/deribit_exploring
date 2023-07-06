@@ -51,8 +51,15 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
         else:
             option_data_dict['ask_price'] = put['ask_price'] * call['underlying_price']
             option_data_dict['ask_type'] = 'put'
-    else:
+    elif call['ask_price'] is None and put['ask_price'] is None:
         return None
+    else:
+        if call['ask_price'] is None:
+            option_data_dict['ask_price'] = put['ask_price'] * call['underlying_price']
+            option_data_dict['ask_type'] = 'put'
+        else:
+            option_data_dict['ask_price'] = call['ask_price'] * call['underlying_price']
+            option_data_dict['ask_type'] = 'call'
 
     if call['bid_price'] is not None and put['bid_price'] is not None:
         if call['bid_price'] >= put['bid_price']:
@@ -61,8 +68,15 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
         else:
             option_data_dict['bid_price'] = put['bid_price'] * call['underlying_price']
             option_data_dict['bid_type'] = 'put'
-    else:
+    elif call['bid_price'] is None and put['bid_price'] is None:
         return None
+    else:
+        if call['bid_price'] is None:
+            option_data_dict['bid_price'] = put['bid_price'] * call['underlying_price']
+            option_data_dict['bid_type'] = 'put'
+        else:
+            option_data_dict['bid_price'] = call['bid_price'] * call['underlying_price']
+            option_data_dict['bid_type'] = 'call'
 
     option_data_dict['name'] = call['instrument_name'][:-2]
     option_data_dict['strike'] = symbols_data[option_data_dict['name']]['strike']
