@@ -5,13 +5,15 @@ import matplotlib.pyplot as plt
 from sympy import Pow
 
 
-def find_points(start_point: float, contraction_mapping: Callable, f: Callable) -> Tuple[List[float], List[float]]: # добавить разницу между иксами
+def find_points(start_point: float, contraction_mapping: Callable, f: Callable) -> Tuple[List[float], List[float]]:
     x_points: List[float] = [start_point]
     y_points: List[float] = [f(x_points[-1])]
 
-    for i in range(50):
+    for i in range(100):
         x_points.append(contraction_mapping(x_points[-1]))
         y_points.append(f(x_points[-1]))
+        if abs(x_points[-1] - x_points[-2]) < 0.0001:
+            break
 
     return x_points, y_points
 
