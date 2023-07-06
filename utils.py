@@ -92,7 +92,7 @@ def calculate_next_volatility(price_type: str, price: float, T: float, X: float,
         N1 = norm.cdf(-d1)
         N2 = norm.cdf(-d2)
         f = price - X * N2 + S * N1
-    f_derivative = S * norm.pdf(d1) * sqrt(T)
+    f_derivative = - S * norm.pdf(d1) * sqrt(T)
 
     new_sigma = sigma - f / f_derivative
     return new_sigma
