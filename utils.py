@@ -3,6 +3,7 @@ from datetime import timedelta
 from typing import Tuple, List, Dict, Any, Union
 
 from scipy.stats import norm
+from sympy import nan
 
 from math import sqrt, log
 from model import SymbolData, OptionData
@@ -87,11 +88,11 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
     return OptionData(*option_data_dict.values())
 
 
-def calculate_ask_bid_volatility(option: OptionData):
-    option.ask_volatility = calculate_volatility(option=option, price_type=option.ask_type, ask_price=option.ask_price)
-    option.bid_volatility = calculate_volatility(option=option, price_type=option.bid_type, ask_price=option.bid_price)
+def calculate_ask_bid_volatility(option: OptionData) -> Tuple[float, float]:
+    ask_volatility = calculate_volatility(option=option, price_type=option.ask_type, ask_price=option.ask_price)
+    bid_volatility = calculate_volatility(option=option, price_type=option.bid_type, ask_price=option.bid_price)
 
-    print(option.ask_volatility, option.bid_volatility)
+    return ask_volatility, bid_volatility
 
 
 def calculate_next_volatility(price_type: str, price: float, T: float, X: float, S: float, sigma: float):
@@ -116,13 +117,24 @@ def calculate_volatility(option: OptionData, price_type: str, ask_price: float):
     number_of_iterations = 100
     difference = 0.0001
 
-    sigma1: float = 0.5
-    for _ in range(number_of_iterations):
-        sigma2 = calculate_next_volatility(price_type=price_type, price=ask_price, T=option.maturity,
-                                           X=option.strike, S=option.underlying_price, sigma=sigma1)
-        if abs(sigma1 - sigma2) < difference:
-            break
-        else:
-            sigma1 = sigma2
+    start_points: List[float] = [0.2, 0.5, 0.7, 1, 1.5, 2, 4, 8, 9]
 
+    for i in range(len(start_points)):
+        sigma1: float = start_points[i]
+        for _ in range(number_of_iterations):
+            sigma2 = calculate_next_volatility(price_type=price_type, price=ask_price, T=option.maturity,
+                                               X=option.strike, S=option.underlying_price, sigma=sigma1)
+            if abs(sigma1 - sigma2) < difference:
+                break
+            else:
+                sigma1 = sigma2
+            if sigma1 == nan or sigma2 == nan:
+                break
+            elif sigma1 == 0 or sigma2 == 0 and i != len(start_points) - 1:
+                break
+            elif sigma1 == 0 or sigma2 == 0 and i == len(start_points) - 1:
+                sigma2 = nan
+        if sigma2 != nan:
+            break
     return sigma2
+

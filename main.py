@@ -2,11 +2,13 @@ import json
 from collections import defaultdict
 from typing import List, Dict, Union
 
+import matplotlib.pyplot as plt
 import requests
 from requests import Response
+from sympy import nan
 
 from model import SymbolData, OptionData
-from utils import get_list_of_symbols_data, get_list_of_call_and_put_data, create_option_data, calculate_volatility, \
+from utils import get_list_of_symbols_data, get_list_of_call_and_put_data, create_option_data, \
     calculate_ask_bid_volatility
 
 if __name__ == '__main__':
@@ -41,9 +43,28 @@ if __name__ == '__main__':
 
     options_info: Dict[str, List[OptionData]] = defaultdict(list)
     for call, put in zip(options_call, options_put):
-        series = call['instrument_name'].split('-')[0] + call['instrument_name'].split('-')[1]
+        series = call['instrument_name'].split('-')[0] + '-' + call['instrument_name'].split('-')[1]
         option = create_option_data(call=call, put=put, symbols_data=symbols_data)
         if option is not None:
             options_info[series].append(option)
+    a = 2
+    for series, option_items in options_info.items():
+        ask_strikes: List[float] = []
+        bid_strikes: List[float] = []
+        ask_volatility, bid_volatility = [], []
+        for item in option_items:
+            item.ask_volatility, item.bid_volatility = calculate_ask_bid_volatility(item)
+            if item.ask_volatility != nan:
+                ask_strikes.append(item.strike)
+                ask_volatility.append(item.ask_volatility)
+            if item.bid_volatility != nan:
+                bid_strikes.append(item.strike)
+                bid_volatility.append(item.bid_volatility)
+        plt.plot(ask_strikes, ask_volatility, 'bo', bid_strikes, bid_volatility, 'r+')
+        plt.xlabel("Strike")
+        plt.ylabel("Volatility")
+        plt.title(f'{series}')
+        plt.savefig(f'volatility_plots/{series}.png')
+        plt.clf()
 
-    calculate_ask_bid_volatility(options_info['BTC14JUL23'][3])
+    b = 2
