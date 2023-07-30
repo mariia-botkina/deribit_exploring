@@ -64,6 +64,7 @@ if __name__ == '__main__':
         plt.xlabel("Strike")
         plt.ylabel("Volatility")
         plt.title(f'{series}')
+        plt.ylim(0.1, 2)
         plt.savefig(f'volatility_plots/{series}.png')
         plt.clf()
 
