@@ -3,10 +3,9 @@ from datetime import timedelta
 from typing import Tuple, List, Dict, Any, Union
 
 import numpy as np
-from numpy import nan
 from scipy.stats import norm
 
-from math import sqrt, log
+import math
 from model import SymbolData, OptionData
 
 
@@ -97,8 +96,8 @@ def calculate_ask_bid_volatility(option: OptionData) -> Tuple[float, float]:
 
 
 def calculate_next_volatility(price_type: str, price: float, T: float, X: float, S: float, sigma: float):
-    d1 = (log(S / X) + sigma ** 2 / 2 * T) / (sigma * sqrt(T))
-    d2 = d1 - sigma * sqrt(T)
+    d1 = (math.log(S / X) + sigma ** 2 / 2 * T) / (sigma * T ** (1 / 2))
+    d2 = d1 - sigma * T ** (1 / 2)
 
     if price_type == 'call':
         N1 = norm.cdf(d1)
@@ -108,9 +107,12 @@ def calculate_next_volatility(price_type: str, price: float, T: float, X: float,
         N1 = norm.cdf(-d1)
         N2 = norm.cdf(-d2)
         f = price - X * N2 + S * N1
-    f_derivative = - S * norm.pdf(d1) * sqrt(T)
+    f_derivative = - S * norm.pdf(d1) * T ** (1 / 2)
 
-    new_sigma = sigma - f / f_derivative
+    if f_derivative < 10 ** -4:
+        new_sigma = np.nan
+    else:
+        new_sigma = sigma - f / f_derivative
     return new_sigma
 
 
@@ -118,7 +120,7 @@ def calculate_volatility(option: OptionData, price_type: str, ask_price: float):
     number_of_iterations = 100
     difference = 0.0001
 
-    start_points: List[float] = [0.2, 0.5, 0.7, 1, 1.5, 2, 4, 8, 9]
+    start_points: List[float] = [0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     for i in range(len(start_points)):
         sigma1: float = start_points[i]
@@ -129,17 +131,14 @@ def calculate_volatility(option: OptionData, price_type: str, ask_price: float):
                 break
             else:
                 sigma1 = sigma2
-            if sigma1 == nan or sigma2 == nan:
+            if sigma1 == np.nan or sigma2 == np.nan:
                 break
             elif sigma1 == 0 or sigma2 == 0 and i != len(start_points) - 1:
                 break
             elif sigma1 == 0 or sigma2 == 0 and i == len(start_points) - 1:
-                sigma2 = nan
+                sigma2 = np.nan
         if not np.isnan(sigma2) and sigma2 >= 0:
             break
     if not np.isnan(sigma2) and sigma2 < 0:
-        sigma2 = nan
+        sigma2 = np.nan
     return sigma2
-
-
-
