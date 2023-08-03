@@ -86,9 +86,9 @@ if __name__ == '__main__':
         ax.legend(handles=[red_patch, blue_patch, green_patch])
         plt.grid()
 
-        plt.plot(ask_strikes, ask_volatility, 'ro', alpha=0.5)
-        plt.plot(bid_strikes, bid_volatility, 'bo', alpha=0.5)
-        plt.plot(mid_strikes, mid_volatility, 'go', alpha=0.5)
+        plt.plot(ask_strikes, ask_volatility, 'ro', alpha=0.5, markersize=3)
+        plt.plot(bid_strikes, bid_volatility, 'bo', alpha=0.5, markersize=3)
+        plt.plot(mid_strikes, mid_volatility, 'go', alpha=0.5, markersize=3)
         plt.xlabel("Strike")
         plt.ylabel("Volatility")
         plt.title(f'{series}')
