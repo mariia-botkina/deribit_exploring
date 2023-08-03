@@ -58,61 +58,40 @@ if __name__ == '__main__':
 
     red_patch = mpatches.Patch(color='red', label='ask')
     blue_patch = mpatches.Patch(color='blue', label='bid')
+    green_patch = mpatches.Patch(color='green', label='mid')
     for series, option_items in options_info.items():
 
         ask_strikes: List[float] = []
         bid_strikes: List[float] = []
-        ask_volatility, bid_volatility = [], []
+        mid_strikes: List[float] = []
+        ask_volatility, bid_volatility, mid_volatility = [], [], []
         for item in sorted(option_items, key=lambda x: x.strike):
+            mid = []
             item.ask_volatility, item.bid_volatility = calculate_ask_bid_volatility(item)
             if not np.isnan(item.ask_volatility):
                 ask_strikes.append(item.strike)
                 ask_volatility.append(item.ask_volatility)
+                mid.append(item.ask_volatility)
 
             if not np.isnan(item.bid_volatility):
                 bid_strikes.append(item.strike)
                 bid_volatility.append(item.bid_volatility)
+                mid.append(item.bid_volatility)
+
+            if mid != []:
+                mid_strikes.append(item.strike)
+                mid_volatility.append(sum(mid) / len(mid))
 
         fig, ax = plt.subplots()
-        ax.legend(handles=[red_patch, blue_patch])
+        ax.legend(handles=[red_patch, blue_patch, green_patch])
         plt.grid()
 
-        plt.plot(ask_strikes, ask_volatility, marker='o', markersize=7, color='red')
-        plt.plot(bid_strikes, bid_volatility, marker='o', markersize=7, color='blue')
+        plt.plot(ask_strikes, ask_volatility, 'ro')
+        plt.plot(bid_strikes, bid_volatility, 'bo')
+        plt.plot(mid_strikes, mid_volatility, 'go')
         plt.xlabel("Strike")
         plt.ylabel("Volatility")
         plt.title(f'{series}')
         plt.ylim(0, 2)
         plt.savefig(f'{folder_name}/{series}.png')
         plt.clf()
-
-    strike_ask_volatility = {}
-    strike_bid_volatility = {}
-    for series, option_items in options_info.items():
-        truncated_series = series.split('-')[1]
-        strike_ask_volatility[truncated_series] = []
-        strike_bid_volatility[truncated_series] = []
-        for item in option_items:
-            if not np.isnan(item.ask_volatility):
-                strike_ask_volatility[truncated_series].append(item.ask_volatility)
-            if not np.isnan(item.bid_volatility):
-                strike_bid_volatility[truncated_series].append(item.bid_volatility)
-
-    sorted_strike_ask_volatility = dict(sorted(strike_ask_volatility.items()))
-    sorted_strike_bid_volatility = dict(sorted(strike_bid_volatility.items()))
-
-    plt.grid()
-    plt.title(f'ask volatility mean')
-    plt.tick_params(axis='x', labelsize=6)
-    plt.xticks(rotation=90)
-    plt.plot(sorted_strike_ask_volatility.keys(), list(map(np.mean, sorted_strike_ask_volatility.values())), marker='o', markersize=7)
-    plt.savefig(f'{folder_name}/ask_volatility_mean.png')
-    plt.clf()
-
-    plt.grid()
-    plt.title(f'bid volatility mean')
-    plt.tick_params(axis='x', labelsize=6)
-    plt.xticks(rotation=90)
-    plt.plot(sorted_strike_bid_volatility.keys(), list(map(np.mean, sorted_strike_bid_volatility.values())), marker='o', markersize=7)
-    plt.savefig(f'{folder_name}/bid_volatility_mean.png')
-    plt.clf()
