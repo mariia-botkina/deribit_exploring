@@ -75,6 +75,7 @@ if __name__ == '__main__':
 
         fig, ax = plt.subplots()
         ax.legend(handles=[red_patch, blue_patch])
+        plt.grid()
 
         plt.plot(ask_strikes, ask_volatility, marker='o', markersize=7, color='red')
         plt.plot(bid_strikes, bid_volatility, marker='o', markersize=7, color='blue')
@@ -100,6 +101,7 @@ if __name__ == '__main__':
     sorted_strike_ask_volatility = dict(sorted(strike_ask_volatility.items()))
     sorted_strike_bid_volatility = dict(sorted(strike_bid_volatility.items()))
 
+    plt.grid()
     plt.title(f'ask volatility mean')
     plt.tick_params(axis='x', labelsize=6)
     plt.xticks(rotation=90)
@@ -107,6 +109,7 @@ if __name__ == '__main__':
     plt.savefig(f'{folder_name}/ask_volatility_mean.png')
     plt.clf()
 
+    plt.grid()
     plt.title(f'bid volatility mean')
     plt.tick_params(axis='x', labelsize=6)
     plt.xticks(rotation=90)
