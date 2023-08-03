@@ -89,8 +89,8 @@ def create_option_data(call: Dict[str, Any], put: Dict[str, Any], symbols_data: 
 
 
 def calculate_ask_bid_volatility(option: OptionData) -> Tuple[float, float]:
-    ask_volatility = calculate_volatility(option=option, price_type=option.ask_type, ask_price=option.ask_price)
-    bid_volatility = calculate_volatility(option=option, price_type=option.bid_type, ask_price=option.bid_price)
+    ask_volatility = calculate_volatility(option=option, price_type=option.ask_type, price=option.ask_price)
+    bid_volatility = calculate_volatility(option=option, price_type=option.bid_type, price=option.bid_price)
 
     return ask_volatility, bid_volatility
 
