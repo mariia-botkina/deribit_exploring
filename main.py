@@ -1,11 +1,14 @@
 import json
+import os
 from collections import defaultdict
+from datetime import datetime
 from typing import List, Dict, Union
 
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import numpy as np
 import requests
 from requests import Response
-from sympy import nan
 
 from model import SymbolData, OptionData
 from utils import get_list_of_symbols_data, get_list_of_call_and_put_data, create_option_data, \
@@ -47,25 +50,66 @@ if __name__ == '__main__':
         option = create_option_data(call=call, put=put, symbols_data=symbols_data)
         if option is not None:
             options_info[series].append(option)
-    a = 2
+
+    current_time = datetime.now()
+
+    folder_name = f'volatility_plots_{current_time}'
+    os.mkdir(folder_name)
+
+    red_patch = mpatches.Patch(color='red', label='ask')
+    blue_patch = mpatches.Patch(color='blue', label='bid')
     for series, option_items in options_info.items():
+
         ask_strikes: List[float] = []
         bid_strikes: List[float] = []
         ask_volatility, bid_volatility = [], []
-        for item in option_items:
+        for item in sorted(option_items, key=lambda x: x.strike):
             item.ask_volatility, item.bid_volatility = calculate_ask_bid_volatility(item)
-            if item.ask_volatility != nan:
+            if not np.isnan(item.ask_volatility):
                 ask_strikes.append(item.strike)
                 ask_volatility.append(item.ask_volatility)
-            if item.bid_volatility != nan:
+
+            if not np.isnan(item.bid_volatility):
                 bid_strikes.append(item.strike)
                 bid_volatility.append(item.bid_volatility)
-        plt.plot(ask_strikes, ask_volatility, 'bo', bid_strikes, bid_volatility, 'r+')
+
+        fig, ax = plt.subplots()
+        ax.legend(handles=[red_patch, blue_patch])
+
+        plt.plot(ask_strikes, ask_volatility, marker='o', markersize=7, color='red')
+        plt.plot(bid_strikes, bid_volatility, marker='o', markersize=7, color='blue')
         plt.xlabel("Strike")
         plt.ylabel("Volatility")
         plt.title(f'{series}')
-        plt.ylim(0.1, 2)
-        plt.savefig(f'volatility_plots/{series}.png')
+        plt.ylim(0, 2)
+        plt.savefig(f'{folder_name}/{series}.png')
         plt.clf()
 
-    b = 2
+    strike_ask_volatility = {}
+    strike_bid_volatility = {}
+    for series, option_items in options_info.items():
+        truncated_series = series.split('-')[1]
+        strike_ask_volatility[truncated_series] = []
+        strike_bid_volatility[truncated_series] = []
+        for item in option_items:
+            if not np.isnan(item.ask_volatility):
+                strike_ask_volatility[truncated_series].append(item.ask_volatility)
+            if not np.isnan(item.bid_volatility):
+                strike_bid_volatility[truncated_series].append(item.bid_volatility)
+
+    sorted_strike_ask_volatility = dict(sorted(strike_ask_volatility.items()))
+    sorted_strike_bid_volatility = dict(sorted(strike_bid_volatility.items()))
+
+    plt.title(f'ask volatility mean')
+    plt.tick_params(axis='x', labelsize=6)
+    plt.xticks(rotation=90)
+    plt.plot(sorted_strike_ask_volatility.keys(), list(map(np.mean, sorted_strike_ask_volatility.values())), marker='o', markersize=7)
+    plt.savefig(f'{folder_name}/ask_volatility_mean.png')
+    plt.clf()
+
+    plt.title(f'bid volatility mean')
+    plt.tick_params(axis='x', labelsize=6)
+    plt.xticks(rotation=90)
+    plt.plot(sorted_strike_bid_volatility.keys(), list(map(np.mean, sorted_strike_bid_volatility.values())), marker='o', markersize=7)
+    plt.savefig(f'{folder_name}/bid_volatility_mean.png')
+    plt.clf()

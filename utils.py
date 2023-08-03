@@ -2,8 +2,9 @@ from dataclasses import fields
 from datetime import timedelta
 from typing import Tuple, List, Dict, Any, Union
 
+import numpy as np
+from numpy import nan
 from scipy.stats import norm
-from sympy import nan
 
 from math import sqrt, log
 from model import SymbolData, OptionData
@@ -134,7 +135,11 @@ def calculate_volatility(option: OptionData, price_type: str, ask_price: float):
                 break
             elif sigma1 == 0 or sigma2 == 0 and i == len(start_points) - 1:
                 sigma2 = nan
-        if sigma2 != nan:
+        if not np.isnan(sigma2) and sigma2 >= 0:
             break
+    if not np.isnan(sigma2) and sigma2 < 0:
+        sigma2 = nan
     return sigma2
+
+
 
