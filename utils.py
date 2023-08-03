@@ -116,7 +116,7 @@ def calculate_next_volatility(price_type: str, price: float, T: float, X: float,
     return new_sigma
 
 
-def calculate_volatility(option: OptionData, price_type: str, ask_price: float):
+def calculate_volatility(option: OptionData, price_type: str, price: float):
     number_of_iterations = 100
     difference = 0.0001
 
@@ -125,7 +125,7 @@ def calculate_volatility(option: OptionData, price_type: str, ask_price: float):
     for i in range(len(start_points)):
         sigma1: float = start_points[i]
         for _ in range(number_of_iterations):
-            sigma2 = calculate_next_volatility(price_type=price_type, price=ask_price, T=option.maturity,
+            sigma2 = calculate_next_volatility(price_type=price_type, price=price, T=option.maturity,
                                                X=option.strike, S=option.underlying_price, sigma=sigma1)
             if np.isnan(sigma2):
                 break
