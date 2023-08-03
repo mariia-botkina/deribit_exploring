@@ -42,7 +42,7 @@ class OptionData:
     ask_type: str  # put or call
     bid_price: Optional[float]  # max from put, call
     bid_type: str  # put or call
-    strike: int  # from symbols info
+    strike: float  # from symbols info
     name: str  # BTC-29JUN23-30000
     ask_volatility: Optional[float]
     bid_volatility: Optional[float]

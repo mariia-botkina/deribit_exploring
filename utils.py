@@ -109,7 +109,7 @@ def calculate_next_volatility(price_type: str, price: float, T: float, X: float,
         f = price - X * N2 + S * N1
     f_derivative = - S * norm.pdf(d1) * T ** (1 / 2)
 
-    if f_derivative < 10 ** -4:
+    if abs(f_derivative) < 10 ** -100:
         new_sigma = np.nan
     else:
         new_sigma = sigma - f / f_derivative
@@ -127,13 +127,14 @@ def calculate_volatility(option: OptionData, price_type: str, ask_price: float):
         for _ in range(number_of_iterations):
             sigma2 = calculate_next_volatility(price_type=price_type, price=ask_price, T=option.maturity,
                                                X=option.strike, S=option.underlying_price, sigma=sigma1)
-            if abs(sigma1 - sigma2) < difference:
+            if np.isnan(sigma2):
+                break
+            elif abs(sigma1 - sigma2) < difference:
                 break
             else:
                 sigma1 = sigma2
-            if sigma1 == np.nan or sigma2 == np.nan:
-                break
-            elif sigma1 == 0 or sigma2 == 0 and i != len(start_points) - 1:
+
+            if sigma1 == 0 or sigma2 == 0 and i != len(start_points) - 1:
                 break
             elif sigma1 == 0 or sigma2 == 0 and i == len(start_points) - 1:
                 sigma2 = np.nan
