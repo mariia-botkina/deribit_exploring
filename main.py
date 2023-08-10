@@ -1,4 +1,9 @@
 import json
+
+import scipy.optimize
+import seaborn as seaborn
+
+import math
 import os
 from collections import defaultdict
 from datetime import datetime
@@ -13,6 +18,17 @@ from requests import Response
 from model import SymbolData, OptionData
 from utils import get_list_of_symbols_data, get_list_of_call_and_put_data, create_option_data, \
     calculate_ask_bid_volatility
+
+def volatility_curve(sabcde):
+    global sigma, x
+    s, a, b, c, d, e = sabcde
+    y = x - s
+    return sigma - (a + b * (1 - math.e ** (-c * y ** 2)) + d * math.atan(e * y) / e)
+
+def new_volatility_curve(sabcde):
+    global x
+    s, a, b, c, d, e = sabcde
+    return a + b * (1 - math.e ** (-c * (x - s) ** 2)) + d * math.atan(e * (x - s)) / e
 
 if __name__ == '__main__':
     url = "https://deribit.com/api/v2/public/get_instruments"
@@ -65,8 +81,10 @@ if __name__ == '__main__':
         bid_strikes: List[float] = []
         mid_strikes: List[float] = []
         ask_volatility, bid_volatility, mid_volatility = [], [], []
+        s, a, b, c, d, e = 1, 1, 1, 1, 1, 1
         for item in sorted(option_items, key=lambda x: x.strike):
             mid = []
+            volatility_x = []
             item.ask_volatility, item.bid_volatility = calculate_ask_bid_volatility(item)
             if not np.isnan(item.ask_volatility):
                 ask_strikes.append(item.strike)
@@ -82,9 +100,20 @@ if __name__ == '__main__':
                 mid_strikes.append(item.strike)
                 mid_volatility.append(sum(mid) / len(mid))
 
+                sigma = mid_volatility[-1]
+                x = 1 / (item.maturity) ** (1 / 2) * math.log(item.strike / item.underlying_price)
+                volatility_x.append(x)
+                result = scipy.optimize.minimize(volatility_curve, (s, a, b, c, d, e))
+                s, a, b, c, d, e = result.x
+
         fig, ax = plt.subplots()
         ax.legend(handles=[red_patch, blue_patch, green_patch])
         plt.grid()
+
+
+        for i in range(len(mid_strikes)):
+            x = volatility_x[i]
+            pass
 
         plt.plot(ask_strikes, ask_volatility, 'ro', alpha=0.5, markersize=3)
         plt.plot(bid_strikes, bid_volatility, 'bo', alpha=0.5, markersize=3)
@@ -95,3 +124,5 @@ if __name__ == '__main__':
         plt.ylim(0, 2)
         plt.savefig(f'{folder_name}/{series}.png')
         plt.clf()
+        print(result.x)
+
